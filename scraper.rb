@@ -36,6 +36,16 @@ def region_from(text)
   return ['', '']
 end
 
+@prefixes = %w(Assoc Prof Professor Rev Bishop Prince Dr Lt Col Colonel Mr Mrs Ms Miss).to_set
+@prefixes << "(Ret’)"
+
+def split_name(name)
+  words = name.split(/\s/)
+  split_at = words.find_index { |w| !@prefixes.include? w.chomp('.') }
+  parts = [words.take(split_at), words.drop(split_at)]
+  parts.map { |p| p.join ' ' }
+end
+
 def scrape_list(url)
   noko = noko_for(url)
   noko.css('.who-parliament .member-image .swap-title a/@href').map(&:text).each do |link|
@@ -47,9 +57,11 @@ def scrape_mp(url)
   noko = noko_for(url)
   party_id, party   = party_from noko.xpath('.//span[@class="meta-title" and contains(.,"Party")]/following-sibling::text()').text.tidy
   region_id, region = region_from noko.xpath('.//span[@class="meta-title" and contains(.,"Region")]/following-sibling::a').text.tidy
+  prefix, name = split_name(noko.css('div.bread-crumb li.last').text.tidy.sub(/^Hon.? /,''))
   data = { 
     id: url.to_s.split("/").last,
-    name: noko.css('div.bread-crumb li.last').text.tidy.sub(/^Hon.? /,''),
+    honorific_prefix: prefix,
+    name: name,
     role: noko.xpath('.//span[@class="meta-title" and contains(.,"Designation")]/following-sibling::text()').text.tidy,
     party_id: party_id,
     party: party,
@@ -60,6 +72,7 @@ def scrape_mp(url)
     source: url.to_s,
   }
   data[:image] = URI.join(url, URI.escape(data[:image])).to_s unless data[:image].to_s.empty?
+  # warn [data[:honorific_prefix], data[:name]].join(" ----- ") 
   ScraperWiki.save_sqlite([:id, :term], data)
 end
 
