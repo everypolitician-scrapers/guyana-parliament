@@ -36,14 +36,54 @@ def region_from(text)
   return ['', '']
 end
 
-@prefixes = %w(Assoc Prof Professor Rev Bishop Prince Dr Lt Col Colonel Mr Mrs Ms Miss).to_set
-@prefixes << "(Ret’)"
+class NameParts
+  @@prefixes = %w(Assoc Prof Professor Rev Bishop Prince Dr Lt Col Colonel).to_set
+  @@prefixes.merge @@male = %w(Mr)
+  @@prefixes.merge @@female = %w(Mrs Ms Miss)
+  @@prefixes << "(Ret’)"
 
-def split_name(name)
-  words = name.split(/\s/)
-  split_at = words.find_index { |w| !@prefixes.include? w.chomp('.') }
-  parts = [words.take(split_at), words.drop(split_at)]
-  parts.map { |p| p.join ' ' }
+  @@gender_map = Hash[@@female.map { |e| [e, 'female'] }].merge(Hash[@@male.map { |e| [e, 'male'] }])
+
+  def initialize(name)
+    @orig = name
+  end
+
+  def prefix
+    partitioned.first
+  end
+
+  def name
+    partitioned.last
+  end
+
+  def gender
+    prefixes_chomped.map { |p| @@gender_map[p] }.compact.first
+  end
+
+  private
+  def words
+    @_words ||= @orig.split(/\s/)
+  end
+
+  def chomped_words
+    @_chomped_words ||= words.map { |w| w.chomp('.') }
+  end
+
+  def split_point
+    @_split_point ||= chomped_words.find_index { |w| !@@prefixes.include? w }
+  end
+
+  def parts
+    @_parts ||= [words.take(split_point), words.drop(split_point)]
+  end
+
+  def prefixes_chomped
+    @_pref_chomped ||= chomped_words.take(split_point)
+  end
+
+  def partitioned
+    @partitioned ||= parts.map { |p| p.join ' ' }
+  end
 end
 
 def scrape_list(url)
@@ -57,11 +97,12 @@ def scrape_mp(url)
   noko = noko_for(url)
   party_id, party   = party_from noko.xpath('.//span[@class="meta-title" and contains(.,"Party")]/following-sibling::text()').text.tidy
   region_id, region = region_from noko.xpath('.//span[@class="meta-title" and contains(.,"Region")]/following-sibling::a').text.tidy
-  prefix, name = split_name(noko.css('div.bread-crumb li.last').text.tidy.sub(/^Hon.? /,''))
+  nameparts = NameParts.new( noko.css('div.bread-crumb li.last').text.tidy.sub(/^Hon.? /,'') )
   data = { 
     id: url.to_s.split("/").last,
-    honorific_prefix: prefix,
-    name: name,
+    honorific_prefix: nameparts.prefix,
+    name: nameparts.name,
+    gender: nameparts.gender,
     role: noko.xpath('.//span[@class="meta-title" and contains(.,"Designation")]/following-sibling::text()').text.tidy,
     party_id: party_id,
     party: party,
@@ -71,8 +112,8 @@ def scrape_mp(url)
     image: noko.css('.dep-head .member-image img.border/@src').text.sub('__small',''),
     source: url.to_s,
   }
-  data[:image] = URI.join(url, URI.escape(data[:image])).to_s unless data[:image].to_s.empty?
-  # warn [data[:honorific_prefix], data[:name]].join(" ----- ") 
+  # data[:image] = URI.join(url, URI.escape(data[:image])).to_s unless data[:image].to_s.empty?
+  warn [data[:honorific_prefix], data[:name], data[:gender]].join(" ----- ") 
   ScraperWiki.save_sqlite([:id, :term], data)
 end
 
