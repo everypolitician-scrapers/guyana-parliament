@@ -53,7 +53,8 @@ class NameParts
   end
 
   def name
-    partitioned.last
+    # .sub called for specific case where Dr. is not separated from name by space
+    partitioned.last.sub('Dr.Bharrat','Bharrat')
   end
 
   def gender
