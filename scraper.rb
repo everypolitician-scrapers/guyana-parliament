@@ -4,7 +4,6 @@
 require 'scraperwiki'
 require 'nokogiri'
 require 'open-uri'
-require 'colorize'
 
 require 'pry'
 require 'open-uri/cached'
@@ -24,7 +23,7 @@ def party_from(text)
   return ['unkown', 'Unknown'] if text.to_s.empty?
   return ['APNU-AFC', 'A Party For National Unity + Alliance For Change'] if text.include?('APNU') or text.include?('AFC')
   return ['PPP-Civic', 'People Progressive Party/Civic'] if text.include?('People Progressive Party') or text.include?('Civic')
-  warn "Unknown party: #{text}".yellow
+  warn "Unknown party: #{text}"
 end
 
 def region_from(text)
@@ -32,7 +31,7 @@ def region_from(text)
   if matched = text.match(/Region (\d+) - (.*)/)
     return matched.captures 
   end
-  warn "Unknown region: #{text}".green
+  warn "Unknown region: #{text}"
   return ['', '']
 end
 
