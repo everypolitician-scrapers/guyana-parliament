@@ -40,10 +40,6 @@ class MemberPage < Scraped::HTML
     region_id_and_region.last
   end
 
-  field :term do
-    11
-  end
-
   field :image do
     noko.css('.dep-head .member-image img.border/@src').text.sub('__small', '')
   end
