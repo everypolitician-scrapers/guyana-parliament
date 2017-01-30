@@ -2,7 +2,6 @@
 require 'scraped'
 
 class MemberPage < Scraped::HTML
-
   field :id do
     url.to_s.split('/').last
   end
