@@ -57,7 +57,7 @@ class MemberPage < Scraped::HTML
   private
 
   def nameparts
-    @nameparts ||= NameParts.new(noko.css('div.bread-crumb li.last').text.tidy.sub(/^Hon.? /, ''))
+    @nameparts ||= (fragment noko.css('div.bread-crumb li.last') => MemberNameParts)
   end
 
   def party_id_and_party
@@ -86,57 +86,5 @@ class MemberPage < Scraped::HTML
     end
     warn "Unknown region: #{text}"
     ['', '']
-  end
-
-  class NameParts
-    @@prefixes = %w(Assoc Prof Professor Rev Bishop Prince Dr Lt Col Colonel).to_set
-    @@prefixes.merge @@male = %w(Mr)
-    @@prefixes.merge @@female = %w(Mrs Ms Miss)
-    @@prefixes << '(Ret’)'
-
-    @@gender_map = Hash[@@female.map { |e| [e, 'female'] }].merge(Hash[@@male.map { |e| [e, 'male'] }])
-
-    def initialize(name)
-      @orig = name
-    end
-
-    def prefix
-      partitioned.first
-    end
-
-    def name
-      # .sub called for specific case where Dr. is not separated from name by space
-      partitioned.last.sub('Dr.Bharrat', 'Bharrat')
-    end
-
-    def gender
-      prefixes_chomped.map { |p| @@gender_map[p] }.compact.first
-    end
-
-    private
-
-    def words
-      @_words ||= @orig.split(/\s/)
-    end
-
-    def chomped_words
-      @_chomped_words ||= words.map { |w| w.chomp('.') }
-    end
-
-    def split_point
-      @_split_point ||= chomped_words.find_index { |w| !@@prefixes.include? w }
-    end
-
-    def parts
-      @_parts ||= [words.take(split_point), words.drop(split_point)]
-    end
-
-    def prefixes_chomped
-      @_pref_chomped ||= chomped_words.take(split_point)
-    end
-
-    def partitioned
-      @partitioned ||= parts.map { |p| p.join ' ' }
-    end
   end
 end
