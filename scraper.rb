@@ -91,10 +91,14 @@ class NameParts
   end
 end
 
+def scrape(h)
+  url, klass = h.to_a.first
+  klass.new(response: Scraped::Request.new(url: url).response)
+end
+
 def scrape_list(url)
-  noko = noko_for(url)
-  noko.css('.who-parliament .member-image .swap-title a/@href').map(&:text).each do |link|
-    scrape_mp(URI.join(url, link))
+  (scrape url => MembersPage).member_urls.each do |mem_url|
+    scrape_mp(mem_url)
   end
 end
 
