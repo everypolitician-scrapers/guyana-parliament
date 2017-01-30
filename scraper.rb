@@ -13,16 +13,6 @@ require 'pry'
 require 'open-uri/cached'
 OpenURI::Cache.cache_path = '.cache'
 
-class String
-  def tidy
-    gsub(/[[:space:]]+/, ' ').strip
-  end
-end
-
-def noko_for(url)
-  Nokogiri::HTML(open(url).read)
-end
-
 def scrape(h)
   url, klass = h.to_a.first
   klass.new(response: Scraped::Request.new(url: url).response)
@@ -31,7 +21,6 @@ end
 def scrape_list(url)
   (scrape url => MembersPage).member_urls.each do |mem_url|
     data = (scrape mem_url => MemberPage).to_h
-    warn [data[:honorific_prefix], data[:name], data[:gender]].join(' ----- ')
     ScraperWiki.save_sqlite(%i(id term), data)
   end
 end
