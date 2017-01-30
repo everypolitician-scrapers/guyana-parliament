@@ -32,7 +32,8 @@ class MemberNameParts < Scraped::HTML
   end
 
   def gender_map
-    Hash[female_prefixes.map { |e| [e, 'female'] }].merge(Hash[male_prefixes.map { |e| [e, 'male'] }])
+    female_prefixes.map { |e| [e, 'female'] }.to_h
+                   .merge((male_prefixes.map { |e| [e, 'male'] }).to_h)
   end
 
   def partitioned
