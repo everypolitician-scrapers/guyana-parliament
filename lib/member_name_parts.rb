@@ -18,9 +18,12 @@ class MemberNameParts < Scraped::HTML
   private
 
   def prefixes
+    occupational_prefixes.merge(female_prefixes)
+                         .merge(male_prefixes)
+  end
+
+  def occupational_prefixes
     %w(Assoc Prof Professor Rev Bishop Prince Dr Lt Col Colonel (Ret’)).to_set
-                                                                       .merge(female_prefixes)
-                                                                       .merge(male_prefixes)
   end
 
   def female_prefixes
