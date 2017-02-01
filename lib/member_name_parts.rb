@@ -3,62 +3,34 @@ require 'scraped'
 
 class MemberNameParts < Scraped::HTML
   field :prefix do
-    partitioned.first
+    partitioned.first.join(' ')
   end
 
   field :name do
-    partitioned.last
+    partitioned.last.join(' ')
   end
 
   field :gender do
-    prefixes_chomped.map { |p| gender_map[p] }.compact.first
+    return 'male' if (prefixes & MALE_PREFIXES).any?
+    return 'female' if (prefixes & FEMALE_PREFIXES).any?
   end
 
   private
 
-  def prefixes
-    occupational_prefixes.merge(female_prefixes)
-                         .merge(male_prefixes)
-  end
-
-  def occupational_prefixes
-    %w(Assoc Prof Professor Rev Bishop Prince Dr Lt Col Colonel (Ret’)).to_set
-  end
-
-  def female_prefixes
-    %w(Mrs Ms Miss)
-  end
-
-  def male_prefixes
-    %w(Mr)
-  end
-
-  def gender_map
-    female_prefixes.map { |e| [e, 'female'] }.to_h
-                   .merge((male_prefixes.map { |e| [e, 'male'] }).to_h)
-  end
+  OCCUPATIONAL_PREFIXES = %w(Assoc Prof Professor Rev Bishop Prince Dr Lt Col Colonel (Ret’)).freeze
+  FEMALE_PREFIXES       = %w(Mrs Ms Miss).freeze
+  MALE_PREFIXES         = %w(Mr).freeze
+  PREFIXES              = OCCUPATIONAL_PREFIXES + FEMALE_PREFIXES + MALE_PREFIXES
 
   def partitioned
-    @partitioned ||= parts.map { |p| p.join ' ' }
+    words.partition { |w| PREFIXES.include? w.chomp('.') }
   end
 
-  def split_point
-    @_split_point ||= chomped_words.find_index { |w| !prefixes.include? w }
-  end
-
-  def chomped_words
-    @_chomped_words ||= words.map { |w| w.chomp('.') }
-  end
-
-  def parts
-    @_parts ||= [words.take(split_point), words.drop(split_point)]
-  end
-
-  def prefixes_chomped
-    @_pref_chomped ||= chomped_words.take(split_point)
+  def prefixes
+    partitioned.first.map { |w| w.chomp('.') }
   end
 
   def words
-    @_words ||= noko.text.tidy.sub(/^Hon.? /, '').split(/\s/)
+    noko.text.tidy.sub(/^Hon.? /, '').split(/\s/)
   end
 end
