@@ -7,8 +7,7 @@ class MemberNameParts < Scraped::HTML
   end
 
   field :name do
-    # .sub called for specific case where Dr. is not separated from name by space
-    partitioned.last.sub('Dr.Bharrat', 'Bharrat')
+    partitioned.last
   end
 
   field :gender do

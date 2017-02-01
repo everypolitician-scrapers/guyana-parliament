@@ -22,6 +22,8 @@ def scrape_list(url)
   (scrape url => MembersPage).member_urls.each do |mem_url|
     data = (scrape mem_url => MemberPage).to_h
                                          .merge(term: 11)
+    # .sub! called for specific case where Dr. is not separated from name by space
+    data[:name].sub!('Dr.Bharrat', 'Bharrat')
     puts data.reject { |_k, v| v.to_s.empty? }.sort_by { |k, _v| k }.to_h
     ScraperWiki.save_sqlite(%i(id term), data)
   end
