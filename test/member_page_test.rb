@@ -77,4 +77,31 @@ describe MemberPage do
       )
     end
   end
+
+  describe 'Member without space separating title from name' do
+    around { |test| VCR.use_cassette('JagdeoBharrat', &test) }
+
+    subject do
+      url = 'http://parliament.gov.gy/about-parliament/parliamentarian/bharrat-jagdeo/'
+      MemberPage.new(response: Scraped::Request.new(url: url).response)
+    end
+    # The member's name is displayed as Dr.Bharrat Jagdeo. Since the name and the title
+    # are not separated by a space, the scraper cannot yet separate them properly. Instead,
+    # as a temporary fix, we are simply replacing Dr.Bharrat with 'Bharrat'. See issue: #5
+    it 'Should contain the expected data' do
+      subject.to_h.must_equal(
+        id:               'bharrat-jagdeo',
+        honorific_prefix: '',
+        name:             'Bharrat Jagdeo',
+        gender:           nil,
+        role:             '',
+        party_id:         'PPP-Civic',
+        party:            'People Progressive Party/Civic',
+        area_id:          '',
+        area:             '',
+        image:            'http://parliament.gov.gy/images/member_photos/4031/mr._bharrat_jagdeo,_m.p..jpg',
+        source:           'http://parliament.gov.gy/about-parliament/parliamentarian/bharrat-jagdeo/'
+      )
+    end
+  end
 end
