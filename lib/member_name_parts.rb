@@ -7,7 +7,9 @@ class MemberNameParts < Scraped::HTML
   end
 
   field :name do
-    partitioned.last.join(' ').tidy
+    # .sub called for specific case where Dr. is not separated from name by space
+    # This is a temporary fix. See issue #5
+    partitioned.last.join(' ').sub('Dr.Bharrat', 'Bharrat')
   end
 
   field :gender do
