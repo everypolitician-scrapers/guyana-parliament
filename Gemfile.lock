@@ -16,6 +16,16 @@ GIT
       vcr-archive (~> 0.3.0)
 
 GIT
+  remote: https://github.com/everypolitician/scraper_test.git
+  revision: 9b4326c1e04ea7c8caf368d99bb5ac3711726199
+  specs:
+    scraper_test (0.1.0)
+      minitest (~> 5.0)
+      pry
+      vcr (>= 3.0.3)
+      webmock (>= 2.0)
+
+GIT
   remote: https://github.com/everypolitician/table_unspanner.git
   revision: a70a98a104a75b470f4ea339fdd728366a40b4d8
   specs:
@@ -121,6 +131,7 @@ DEPENDENCIES
   rubocop
   scraped!
   scraped_page_archive!
+  scraper_test!
   scraperwiki!
   table_unspanner!
   vcr
@@ -130,4 +141,4 @@ RUBY VERSION
    ruby 2.3.3p222
 
 BUNDLED WITH
-   1.13.6
+   1.14.6
