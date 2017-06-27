@@ -21,7 +21,7 @@ def noko_for(url)
 end
 
 def party_from(text)
-  return %w(unkown Unknown) if text.to_s.empty?
+  return %w[unkown Unknown] if text.to_s.empty?
   return ['APNU-AFC', 'A Party For National Unity + Alliance For Change'] if text.include?('APNU') or text.include?('AFC')
   return ['PPP-Civic', 'People Progressive Party/Civic'] if text.include?('People Progressive Party') or text.include?('Civic')
   warn "Unknown party: #{text}"
@@ -37,9 +37,9 @@ def region_from(text)
 end
 
 class NameParts
-  @@prefixes = %w(Assoc Prof Professor Rev Bishop Prince Dr Lt Col Colonel).to_set
-  @@prefixes.merge @@male = %w(Mr)
-  @@prefixes.merge @@female = %w(Mrs Ms Miss)
+  @@prefixes = %w[Assoc Prof Professor Rev Bishop Prince Dr Lt Col Colonel].to_set
+  @@prefixes.merge @@male = %w[Mr]
+  @@prefixes.merge @@female = %w[Mrs Ms Miss]
   @@prefixes << '(Ret’)'
 
   @@gender_map = Hash[@@female.map { |e| [e, 'female'] }].merge(Hash[@@male.map { |e| [e, 'male'] }])
@@ -116,7 +116,7 @@ def scrape_mp(url)
   }
   #  data[:image] = URI.join(url, URI.escape(data[:image])).to_s unless data[:image].to_s.empty?
   warn [data[:honorific_prefix], data[:name], data[:gender]].join(' ----- ')
-  ScraperWiki.save_sqlite(%i(id term), data)
+  ScraperWiki.save_sqlite(%i[id term], data)
 end
 
 ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
