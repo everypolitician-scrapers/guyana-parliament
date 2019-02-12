@@ -1,5 +1,4 @@
 #!/bin/env ruby
-# encoding: utf-8
 # frozen_string_literal: true
 
 require 'nokogiri'
@@ -15,9 +14,10 @@ def noko_for(url)
 end
 
 def party_from(text)
-  return %w(unkown Unknown) if text.to_s.empty?
+  return %w[unkown Unknown] if text.to_s.empty?
   return ['APNU-AFC', 'A Party For National Unity + Alliance For Change'] if text.include?('APNU') or text.include?('AFC')
   return ['PPP-Civic', 'People Progressive Party/Civic'] if text.include?('People Progressive Party') or text.include?('Civic')
+
   warn "Unknown party: #{text}"
 end
 
@@ -26,14 +26,15 @@ def region_from(text)
   if matched = text.match(/Region (\d+) - (.*)/)
     return matched.captures
   end
+
   warn "Unknown region: #{text}"
   ['', '']
 end
 
 class NameParts
-  @@prefixes = %w(Assoc Prof Professor Rev Bishop Prince Dr Lt Col Colonel).to_set
-  @@prefixes.merge @@male = %w(Mr)
-  @@prefixes.merge @@female = %w(Mrs Ms Miss)
+  @@prefixes = %w[Assoc Prof Professor Rev Bishop Prince Dr Lt Col Colonel].to_set
+  @@prefixes.merge @@male = %w[Mr]
+  @@prefixes.merge @@female = %w[Mrs Ms Miss]
   @@prefixes << '(Ret’)'
 
   @@gender_map = Hash[@@female.map { |e| [e, 'female'] }].merge(Hash[@@male.map { |e| [e, 'male'] }])
@@ -114,4 +115,4 @@ data = members_data('http://parliament.gov.gy/about-parliament/parliamentarian')
 data.each { |mem| puts mem.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h } if ENV['MORPH_DEBUG']
 
 ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
-ScraperWiki.save_sqlite(%i(id term), data)
+ScraperWiki.save_sqlite(%i[id term], data)
