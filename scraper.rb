@@ -58,27 +58,27 @@ class NameParts
   private
 
   def words
-    @_words ||= @orig.split(/\s/)
+    @orig.split(/\s/)
   end
 
   def chomped_words
-    @_chomped_words ||= words.map { |w| w.chomp('.') }
+    words.map { |w| w.chomp('.') }
   end
 
   def split_point
-    @_split_point ||= chomped_words.find_index { |w| !@@prefixes.include? w }
+    chomped_words.find_index { |w| !@@prefixes.include? w }
   end
 
   def parts
-    @_parts ||= [words.take(split_point), words.drop(split_point)]
+    [words.take(split_point), words.drop(split_point)]
   end
 
   def prefixes_chomped
-    @_pref_chomped ||= chomped_words.take(split_point)
+    chomped_words.take(split_point)
   end
 
   def partitioned
-    @partitioned ||= parts.map { |p| p.join ' ' }
+    parts.map { |p| p.join ' ' }
   end
 end
 
