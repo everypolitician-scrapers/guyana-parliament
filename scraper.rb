@@ -2,19 +2,13 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
-require 'scraperwiki'
 require 'nokogiri'
-require 'open-uri'
-
 require 'pry'
+require 'scraped'
+require 'scraperwiki'
+
 require 'open-uri/cached'
 OpenURI::Cache.cache_path = '.cache'
-
-class String
-  def tidy
-    gsub(/[[:space:]]+/, ' ').strip
-  end
-end
 
 def noko_for(url)
   Nokogiri::HTML(open(url).read)
@@ -88,19 +82,19 @@ class NameParts
   end
 end
 
-def scrape_list(url)
+def members_data(url)
   noko = noko_for(url)
-  noko.css('.who-parliament .member-image .swap-title a/@href').map(&:text).each do |link|
-    scrape_mp(URI.join(url, link))
+  noko.css('.who-parliament .member-image .swap-title a/@href').map(&:text).map do |link|
+    mp_data(URI.join(url, link))
   end
 end
 
-def scrape_mp(url)
+def mp_data(url)
   noko = noko_for(url)
   party_id, party   = party_from noko.xpath('.//span[@class="meta-title" and contains(.,"Party")]/following-sibling::text()').text.tidy
   region_id, region = region_from noko.xpath('.//span[@class="meta-title" and contains(.,"Region")]/following-sibling::a').text.tidy
   nameparts = NameParts.new(noko.css('div.bread-crumb li.last').text.tidy.sub(/^Hon.? /, ''))
-  data = {
+  {
     id:               url.to_s.split('/').last,
     honorific_prefix: nameparts.prefix,
     name:             nameparts.name,
@@ -114,10 +108,10 @@ def scrape_mp(url)
     image:            noko.css('.dep-head .member-image img.border/@src').text.sub('__small', ''),
     source:           url.to_s,
   }
-  #  data[:image] = URI.join(url, URI.escape(data[:image])).to_s unless data[:image].to_s.empty?
-  warn [data[:honorific_prefix], data[:name], data[:gender]].join(' ----- ')
-  ScraperWiki.save_sqlite(%i(id term), data)
 end
 
+data = members_data('http://parliament.gov.gy/about-parliament/parliamentarian')
+data.each { |mem| puts mem.reject { |_, v| v.to_s.empty? }.sort_by { |k, _| k }.to_h } if ENV['MORPH_DEBUG']
+
 ScraperWiki.sqliteexecute('DROP TABLE data') rescue nil
-scrape_list('http://parliament.gov.gy/about-parliament/parliamentarian')
+ScraperWiki.save_sqlite(%i(id term), data)
